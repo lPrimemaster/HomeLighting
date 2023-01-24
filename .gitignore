@@ -1,0 +1,7 @@
+.pio
+.vscode/
+*.code-workspace
+build/
+
+# Ignore the generated files
+include/gen/

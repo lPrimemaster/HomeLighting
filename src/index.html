@@ -1,0 +1,475 @@
+<!DOCTYPE HTML><html>
+<head>
+    <title>ESP32 Web Server</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        /* html {font-family: Arial; display: inline-block; text-align: center;}
+        
+        p {font-size: 3.0rem;}
+        body {max-width: 600px; margin:0px auto; padding-bottom: 25px;} */
+        
+        :root {
+            --b-range-color: hsl(0, 0%, 25%);
+            --h-range-color: hsl(0, 100%, 50%);
+            --s-range-color: hsl(0, 100%, 50%);
+            --hueSelector: hsl(0, 100%, 50%);
+
+            --radius: 10px;
+            --baseFg: white;
+            --baseBg: rgb(31, 36, 40);
+            --accentFg: #404040;
+            --accentBg: #434343;
+        }
+
+        body {
+            background-color: rgb(31, 36, 40);
+            color: white;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 3.0rem;
+        }
+
+        .auto {
+            border: 1px solid white;
+            border-radius: 10px;
+            width: 80%;
+            height: auto;
+            margin: 5%;
+            justify-content: left;
+        }
+
+        .auto-title {
+            margin-left: 2%;
+            margin-top: 2%;
+            padding-bottom: 2%;
+            font-size: 25px;
+        }
+
+        .auto-body {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            margin-right: 10%;
+            margin-left: 10%;
+            width: 90%;
+        }
+
+        .auto-option {
+            display: flex;
+            padding-bottom: 20px;
+            gap: 10px;
+            line-height: 3;
+            justify-content: right;
+            padding-right: 10%;
+        }
+
+        .pct-label {
+            width: 20px;
+        }
+
+        .gradient-slider {
+            position: relative;
+            width: 200px;
+            height: 50px;
+            left: -2px;
+            border: 1px solid white;
+            border-radius: 0px;
+        }
+
+        .gradient-thumb {
+            position: absolute;
+            cursor: ew-resize;
+            background: #434343;
+            width: 5px;
+            height: 100%;
+            top: -1px;
+            border: 1px solid white;
+            border-radius: 0px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            margin-right: 144px;
+            height: 50px;
+        }
+
+        .switch input {
+            display: none;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 42px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:checked + .slider {
+            background-color: #434343;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #434343;
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+
+        select {
+            -webkit-appearance: none;
+            appearance: none;
+            color: var(--baseFg);
+            border: 1px solid var(--baseFg);
+            width: 200px;
+            height: 50px;
+            text-align: center;
+            /* line-height: 1; */
+            outline: 0;
+            border-radius: var(--radius);
+            background-color: var(--baseBg);
+            background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+            background-size: 1px 100%, 20px 22px, 20px 22px, 20px 100%;
+            background-position: right 20px center, right bottom, right bottom, right bottom;   
+        }
+
+        input[type='range'] {
+            overflow: hidden;
+            width: 200px;
+            height: 50px;
+            -webkit-appearance: none;
+            background-color: transparent;
+            border: 1px solid white;
+            border-radius: 10px;
+        }
+    
+        input[type='range']::-webkit-slider-runnable-track {
+            height: 50px;
+            -webkit-appearance: none;
+            /* color: #13bba4; */
+            margin-top: 0px;
+        }
+    
+        input[type='range']::-webkit-slider-thumb {
+            width: 15px;
+            -webkit-appearance: none;
+            height: 51px;
+            cursor: ew-resize;
+            background: #434343;
+            border: 1px solid white;
+            border-radius: 7px;
+            box-shadow: -200px 0 0 190px rgba(255, 255, 255, 0.532);
+        }
+
+        #b-range::-webkit-slider-thumb {
+            box-shadow: -200px 0 0 190px var(--b-range-color);
+        }
+
+        #h-range::-webkit-slider-thumb {
+            box-shadow: -200px 0 0 390px var(--h-range-color);
+        }
+
+        #s-range::-webkit-slider-thumb {
+            box-shadow: -200px 0 0 190px var(--s-range-color);
+        }
+
+        #hueRange::-webkit-slider-runnable-track {
+            background: linear-gradient(90deg,
+                hsl(0, 100%, 50%) 0%,
+                hsl(90, 100%, 50%) 25%,
+                hsl(180, 100%, 50%) 50%,
+                hsl(270, 100%, 50%) 75%,
+                hsl(360, 100%, 50%) 100%);
+        }
+    </style>
+</head>
+<body>
+    <h2>ESP32 Web Server</h2><br/><br/><br/>
+    <div class="grid-container">
+        <div class='auto'>
+            <div class='auto-title'>
+                <i class="fa fa-calculator"></i>
+                <label>Effect</label>
+            </div>
+            <div class='auto-body'>
+                <div class='auto-option'>
+                    <label>Mode</label>
+                    <select name="mode" id="mode">
+                        <option value="solid">Solid</option>
+                        <option value="gradient">Gradient</option>
+                        <option value="rainbow">Rainbow</option>
+                        <option value="matrix">Matrix</option>
+                        <option value="sinelon">Sinelon</option>
+                    </select>
+                    <label class="pct-label"></label> <!-- Padding -->
+                </div>
+
+                <div class='auto-option'>
+                    <label>Brightness</label>
+                    <input type="range" min="0" max="255" value="64" step="1" id="b-range">
+                    <label id="b-pct" class="pct-label">25%</label>
+                </div>
+            </div>
+        </div>
+
+        <div class='auto'>
+            <div class='auto-title'>
+                <i class="fa fa-sun-o"></i>
+                <label>Effect Settings</label>
+            </div>
+
+            <!-- Solid -->
+            <div class='auto-body' id='settings-solid'>
+                <div class='auto-option'>
+                    <label>Hue</label>
+                    <input type="range" min="0" max="255" value="0" step="1" id="h-range">
+                    <label id="h-pct" class="pct-label">0&#176</label>
+                </div>
+
+                <div class='auto-option'>
+                    <label>Saturation</label>
+                    <input type="range" min="0" max="255" value="255" step="1" id="s-range">
+                    <label id="s-pct" class="pct-label">100%</label>
+                </div>
+            </div>
+
+            <!-- Gradient -->
+            <div class='auto-body' id='settings-gradient' style="display: none;">
+                <div class='auto-option'>
+                    <label># Colors</label>
+                    <input type="range" min="2" max="10" value="2" step="1" id="color-range">
+                    <label id="c-cnt" class="pct-label">2</label>
+                </div>
+
+                <div class='auto-option'>
+                    <label>Gradient</label>
+                    <div class='gradient-slider' id='gslider'>
+                        <div class='gradient-thumb' id="gthumb-0"></div>
+                        <div class='gradient-thumb' id="gthumb-1"></div>
+                    </div>
+                    <label class="pct-label"></label> <!-- Padding -->
+                </div>
+
+                <div class='auto-option'>
+                    <label>Slide</label>
+                    <label class="switch">
+                        <input type="checkbox" id="speed-toggle">
+                        <span class="slider"></span>
+                    </label>
+                    <label class="pct-label"></label> <!-- Padding -->
+                </div>
+
+                <div class='auto-option' id='speed-option' style="display: none;">
+                    <label>Slide speed</label>
+                    <input type="range" min="0.1" max="10" value="0.1" step="0.1" id="speed-range">
+                    <label id="speed-pct" class="pct-label">0.1m/s</label>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        var mouseup = 0;
+        function updateValueByName(name, value)
+        {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "/update_value?name="+name+"&value="+value, true);
+            xhr.send();
+        }
+
+        var hues_gradient = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        var poss_gradient = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        var root = document.querySelector(':root');
+        var last_active_setting = document.getElementById("settings-solid");
+
+        // Global Settings
+        var modesel = document.getElementById("mode");
+        modesel.onchange = function()
+        {
+            last_active_setting.style.display = "none";
+            last_active_setting = document.getElementById("settings-"+modesel.value);
+            last_active_setting.style.display = "flex";
+            console.log("settings-"+modesel.value + '=' + last_active_setting.display)
+        }
+
+        var bslider = document.getElementById("b-range");
+        bslider.oninput = function()
+        {
+            root.style.setProperty('--b-range-color', 'hsl(0, 0%, '+ Math.trunc(bslider.value / 255 * 100) +'%)');
+            document.getElementById("b-pct").innerHTML = Math.trunc(bslider.value / 255 * 100).toString() + "%";
+        }
+        bslider.onchange = function()
+        {
+            updateValueByName('brightness', bslider.value);
+        }
+
+        // Solid effects
+        var hslider = document.getElementById("h-range");
+        var sslider = document.getElementById("s-range");
+
+        hslider.oninput = function()
+        {
+            root.style.setProperty('--h-range-color', 'hsl('+ Math.trunc(hslider.value / 255 * 360) +', 100%, 50%)');
+            root.style.setProperty('--s-range-color', 'hsl('+ Math.trunc(hslider.value / 255 * 360) +', '+ Math.trunc(sslider.value / 255 * 100) +'%, 50%)');
+            document.getElementById("h-pct").innerHTML = Math.trunc(hslider.value / 255 * 360).toString() + "&#176";
+        }
+        hslider.onchange = function()
+        {
+            updateValueByName('hue', hslider.value);
+        }
+
+        sslider.oninput = function()
+        {
+            root.style.setProperty('--s-range-color', 'hsl('+ Math.trunc(hslider.value / 255 * 360) +', '+ Math.trunc(sslider.value / 255 * 100) +'%, 50%)');
+            document.getElementById("s-pct").innerHTML = Math.trunc(sslider.value / 255 * 100).toString() + "%";
+        }
+        sslider.onchange = function()
+        {
+            updateValueByName('sat', sslider.value);
+        }
+        
+
+        // Gradient effects
+        var cntslider = document.getElementById("color-range");
+        cntslider.oninput = function()
+        {
+            let gslider = document.getElementById("gslider");
+            document.getElementById("c-cnt").innerHTML = cntslider.value.toString();
+            
+            function gen_gthumb(id) {
+                return "<div class='gradient-thumb' id=\"gthumb-"+id+"\"></div>";
+            }
+
+            let gthumb = "";
+
+            for(let i = 0; i < cntslider.value; i++)
+            {
+                gthumb += gen_gthumb(i);
+            }
+
+            gslider.innerHTML = gthumb;
+
+            let hslvals = "";
+            for(let i = 0; i < cntslider.value; i++)
+            {
+                dragElement(document.getElementById('gthumb-'+i), 193 / cntslider.value * (i+0.5));
+                let pct = Math.trunc((i+0.5) / cntslider.value * 100);
+                let h = Math.trunc(360 * pct / 100);
+                hues_gradient[i] = h;
+                poss_gradient[i] = pct;
+                hslvals += "hsl("+h+", 100%, 50%) "+ pct +"%,";
+            }
+            gslider.style.backgroundImage = "linear-gradient(90deg," + hslvals.substring(0, hslvals.length - 1) + ")";
+        }
+
+        dragElement(document.getElementById('gthumb-0'), 193 / 2 * 0.5);
+        dragElement(document.getElementById('gthumb-1'), 193 / 2 * 1.5);
+
+        var speed_toggle = document.getElementById("speed-toggle");
+        speed_toggle.onchange = function()
+        {
+            var sr = document.getElementById("speed-option");
+            if (speed_toggle.checked === true)
+            {
+                sr.style.display = "flex";
+            }
+            else
+            {
+                sr.style.display = "none";
+            }
+        }
+
+        var speed_slider = document.getElementById("speed-range");
+        speed_slider.oninput = function()
+        {
+            document.getElementById("speed-pct").innerHTML = (Math.round(speed_slider.value * 10) / 10).toString() + "m/s";
+        }
+        speed_slider.onchange = function()
+        {
+            // updateValueByName('hue', hslider.value);
+        }
+
+
+        // Create draggabble elements
+        function dragElement(elmnt, startpos) {
+            var pos1 = 0, pos2 = 0;
+            elmnt.onmousedown = dragMouseDown;
+
+            elmnt.style.left = (elmnt.offsetLeft + startpos) + "px";
+
+            function dragMouseDown(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos2 = e.clientX;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos1 = pos2 - e.clientX;
+                pos2 = e.clientX;
+
+                if (elmnt.offsetLeft - pos1 > 0 && elmnt.offsetLeft - pos1 < 193)
+                {
+                    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+                    
+                    let hslvals = "";
+                    for(let i = 0; i < cntslider.value; i++)
+                    {
+                        if(elmnt.id.includes(i.toString()))
+                        {
+                            console.log(elmnt.style.left)
+                            poss_gradient[i] = Math.trunc(parseInt(elmnt.style.left, 10) / 192 * 100);
+                        }
+
+                        hslvals += "hsl("+hues_gradient[i]+", 100%, 50%) "+ poss_gradient[i] +"%,";
+                    }
+                    console.log(hslvals)
+                    document.getElementById("gslider").style.backgroundImage = "linear-gradient(90deg," + hslvals.substring(0, hslvals.length - 1) + ")";
+
+                }
+            }
+
+            function closeDragElement() {
+                // stop moving when mouse button is released:
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+        function clickElementPopup(elmnt) {
+
+        }
+
+    </script>
+</body>
+</html>
